@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APNIYATRA — Your journey. Your India.</title>
+<meta name="description" content="APNIYATRA — a local-first travel platform for India. Discover, plan, book and experience India beyond the usual.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="css/style.css?v=10">
+</head>
+<body>
+
+<!-- ===================== NAVBAR ===================== -->
+<header class="navbar">
+  <div class="container flex items-center justify-between py-4">
+    <a href="#" class="flex items-center gap-2" data-nav="home">
+      <span class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--rust)">
+        <i data-lucide="compass" class="text-white w-5 h-5"></i>
+      </span>
+      <span class="font-head text-xl font-semibold tracking-tight">APNIYATRA</span>
+    </a>
+
+    <nav class="hidden lg:flex items-center gap-8">
+      <a class="nav-link" data-nav="home">Explore</a>
+      <a class="nav-link" data-nav="planner">Plan Your Yatra</a>
+      <a class="nav-link" data-nav="experiences">Experiences</a>
+      <a class="nav-link" data-nav="services">Local Services</a>
+      <a class="nav-link" data-nav="passport">Yatra Passport</a>
+    </nav>
+
+    <div class="hidden lg:flex items-center gap-5">
+      <a class="nav-link" data-nav="support">Help</a>
+      <a class="nav-link" data-nav="auth">Login</a>
+      <button class="btn btn-secondary btn-sm hidden" id="bookingsNavBtn" data-nav="checkout"><i data-lucide="receipt" class="w-4 h-4"></i> <span id="bookingsCount">0</span></button>
+      <button class="btn btn-primary btn-sm" data-nav="planner">Start Planning</button>
+    </div>
+
+    <button id="hamburgerBtn" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full border" style="border-color:var(--line)">
+      <i data-lucide="menu" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <!-- mobile menu -->
+  <div id="mobileMenu" class="lg:hidden hidden border-t" style="border-color:var(--line);background:var(--cream)">
+    <div class="container py-4 flex flex-col gap-1">
+      <a class="nav-link py-2" data-nav="home">Explore</a>
+      <a class="nav-link py-2" data-nav="planner">Plan Your Yatra</a>
+      <a class="nav-link py-2" data-nav="experiences">Experiences</a>
+      <a class="nav-link py-2" data-nav="services">Local Services</a>
+      <a class="nav-link py-2" data-nav="passport">Yatra Passport</a>
+      <div class="divider my-2"></div>
+      <a class="nav-link py-2" data-nav="support">Help</a>
+      <a class="nav-link py-2" data-nav="auth">Login</a>
+      <button class="btn btn-secondary mt-2 hidden" id="bookingsNavBtnMobile" data-nav="checkout"><i data-lucide="receipt" class="w-4 h-4"></i> My Bookings (<span id="bookingsCountMobile">0</span>)</button>
+      <button class="btn btn-primary mt-2" data-nav="planner">Start Planning</button>
+    </div>
+  </div>
+</header>
+
+<button id="backNavBtn" class="hidden" aria-label="Go back" title="Go back" style="position:fixed;top:84px;left:20px;z-index:90;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;border:1px solid var(--line);transition:.2s">
+  <i data-lucide="arrow-left" class="w-5 h-5"></i>
+</button>
+
+<main id="app">
+
+<!-- ===================== PAGE: HOME ===================== -->
+<section class="page-view active" id="page-home">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="container relative z-10 text-white py-24">
+      <span class="badge" style="background:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(6px)">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Built for Smart India Hackathon 2026
+      </span>
+      <h1 class="font-head text-4xl md:text-6xl font-semibold mt-5 max-w-2xl leading-tight">Discover India beyond the usual.</h1>
+      <p class="mt-5 max-w-xl text-white/85 text-lg leading-relaxed">Plan smarter, discover hidden gems, experience local stories, and connect with trusted local services — all in one journey.</p>
+
+      <!-- search widget -->
+      <div class="hero-search mt-10 max-w-3xl">
+        <p class="text-sm font-semibold mb-3" style="color:var(--ink-soft)">Where do you want to go?</p>
+        <div class="grid md:grid-cols-4 gap-3">
+          <div class="md:col-span-1 relative">
+            <label class="text-xs font-semibold text-gray-500">Destination</label>
+            <div class="flex items-center gap-2 border rounded-xl px-3 py-2.5 mt-1 bg-white" style="border-color:var(--line)">
+              <i data-lucide="map-pin" class="w-4 h-4 flex-shrink-0" style="color:var(--rust)"></i>
+              <input id="heroDestination" type="text" autocomplete="off" placeholder="Jaipur, Rajasthan" class="w-full outline-none text-sm bg-transparent" style="color:var(--ink)">
+            </div>
+            <div id="heroDestSuggest" class="hidden absolute z-20 top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-lg border py-2" style="border-color:var(--line)"></div>
+          </div>
+          <div class="relative">
+            <label class="text-xs font-semibold text-gray-500">Travel dates</label>
+            <button type="button" id="heroDatesTrigger" class="w-full flex items-center gap-2 border rounded-xl px-3 py-2.5 mt-1 text-left bg-white" style="border-color:var(--line)">
+              <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0" style="color:var(--rust)"></i>
+              <span id="heroDatesLabel" class="text-sm text-gray-400 truncate">Add dates</span>
+            </button>
+            <div id="heroDatesPopover" class="hidden absolute z-20 top-full mt-2 left-0 bg-white rounded-xl shadow-lg border p-4 w-64" style="border-color:var(--line)">
+              <label class="text-xs font-semibold text-gray-500">Start date</label>
+              <input type="date" id="heroStartDate" class="w-full border rounded-lg px-3 py-2 text-sm outline-none mt-1 mb-3" style="border-color:var(--line)">
+              <label class="text-xs font-semibold text-gray-500">End date</label>
+              <input type="date" id="heroEndDate" class="w-full border rounded-lg px-3 py-2 text-sm outline-none mt-1 mb-3" style="border-color:var(--line)">
+              <button type="button" class="btn btn-primary btn-sm btn-block" id="heroDatesApply">Apply</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-gray-500">Budget</label>
+            <div class="flex items-center gap-2 border rounded-xl px-3 py-2.5 mt-1 bg-white" style="border-color:var(--line)">
+              <i data-lucide="wallet" class="w-4 h-4 flex-shrink-0" style="color:var(--rust)"></i>
+              <select id="heroBudget" class="w-full outline-none text-sm bg-transparent text-gray-600"></select>
+            </div>
+          </div>
+          <div class="flex items-end">
+            <button class="btn btn-primary btn-block" id="heroCreateYatra">✨ Create My Yatra</button>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p class="text-xs font-semibold text-gray-500 mb-2">Interests</p>
+          <div id="heroInterestChips" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex gap-3">
+        <button class="btn btn-ghost" id="exploreDestinationsBtn">Explore Destinations</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCOVER INDIA -->
+  <div class="container py-20" id="discoverSection">
+    <div class="flex items-end justify-between flex-wrap gap-4 mb-10">
+      <div>
+        <span class="section-eyebrow">Discover India</span>
+        <h2 class="font-head text-3xl md:text-4xl font-semibold mt-2">Where will your Yatra take you?</h2>
+      </div>
+    </div>
+    <div id="destGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-7"></div>
+  </div>
+
+  <!-- HIDDEN GEMS -->
+  <div style="background:var(--cream-2)" class="py-20">
+    <div class="container">
+      <div class="mb-10">
+        <span class="section-eyebrow">Off the Map</span>
+        <h2 class="font-head text-3xl md:text-4xl font-semibold mt-2">Go beyond the tourist map.</h2>
+        <p class="text-gray-600 mt-3 max-w-xl">Discover lesser-known places, local experiences and stories that typical travel apps miss.</p>
+      </div>
+      <div id="gemGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-7"></div>
+    </div>
+  </div>
+
+  <!-- PILLARS -->
+  <div class="container py-20">
+    <div class="text-center mb-12">
+      <span class="section-eyebrow">How it works</span>
+      <h2 class="font-head text-3xl md:text-4xl font-semibold mt-2">Discover → Plan → Book → Assist → Return</h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
+      <div class="card p-6 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4" style="background:var(--leaf-soft)"><i data-lucide="compass" style="color:var(--leaf)"></i></div>
+        <h3 class="font-semibold mb-1">Discover</h3><p class="text-sm text-gray-500">Heritage, hidden gems & stories</p>
+      </div>
+      <div class="card p-6 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4" style="background:var(--saffron-soft)"><i data-lucide="sparkles" style="color:#8a5b12"></i></div>
+        <h3 class="font-semibold mb-1">Plan</h3><p class="text-sm text-gray-500">AI-crafted itineraries</p>
+      </div>
+      <div class="card p-6 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4" style="background:#f6dcd2"><i data-lucide="calendar-check" style="color:var(--rust-dark)"></i></div>
+        <h3 class="font-semibold mb-1">Book</h3><p class="text-sm text-gray-500">Trusted local services</p>
+      </div>
+      <div class="card p-6 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4" style="background:var(--leaf-soft)"><i data-lucide="life-buoy" style="color:var(--leaf)"></i></div>
+        <h3 class="font-semibold mb-1">Assist</h3><p class="text-sm text-gray-500">AI + human on-trip support</p>
+      </div>
+      <div class="card p-6 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4" style="background:var(--saffron-soft)"><i data-lucide="award" style="color:#8a5b12"></i></div>
+        <h3 class="font-semibold mb-1">Return</h3><p class="text-sm text-gray-500">Your Yatra Passport grows</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PAGE: PLANNER ===================== -->
+<section class="page-view" id="page-planner">
+  <div class="container py-14">
+    <span class="section-eyebrow">AI Trip Planner</span>
+    <h1 class="font-head text-3xl md:text-5xl font-semibold mt-2">Build your perfect Yatra.</h1>
+
+    <div id="plannerWizard" class="mt-10 max-w-3xl">
+      <!-- step indicator -->
+      <div class="flex items-center mb-10" id="stepIndicator"></div>
+
+      <div class="card p-7 md:p-9" id="stepContent"></div>
+
+      <div class="flex justify-between mt-6">
+        <button class="btn btn-secondary" id="planPrevBtn">Back</button>
+        <button class="btn btn-primary" id="planNextBtn">Continue</button>
+      </div>
+    </div>
+
+    <!-- RESULT DASHBOARD -->
+    <div id="itineraryResult" class="mt-14 hidden"></div>
+  </div>
+</section>
+
+<!-- ===================== PAGE: MAP / EXPLORE ===================== -->
+<section class="page-view" id="page-map">
+  <div class="container py-10">
+    <span class="section-eyebrow">Explore</span>
+    <h1 class="font-head text-3xl md:text-4xl font-semibold mt-2 mb-6">Find what's around you.</h1>
+
+    <div class="grid lg:grid-cols-[360px_1fr] gap-6">
+      <div>
+        <div class="flex items-center gap-2 border rounded-xl px-4 py-3 mb-4 bg-white" style="border-color:var(--line)">
+          <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+          <input type="text" placeholder="Search places, experiences or services…" class="w-full outline-none text-sm bg-transparent">
+        </div>
+        <div class="flex flex-wrap gap-2 mb-6" id="mapFilterChips"></div>
+        <div id="mapInfoCard" class="card p-5 hidden"></div>
+        <div id="mapInfoPlaceholder" class="card p-5 text-sm text-gray-500">
+          <i data-lucide="mouse-pointer-click" class="w-5 h-5 mb-2" style="color:var(--rust)"></i>
+          Click any marker on the map to see details about that place.
+        </div>
+      </div>
+      <div class="h-[520px] lg:h-[640px] relative rounded-[22px] overflow-hidden shadow-md border" id="mapCanvas" style="border-color:var(--line)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PAGE: SERVICES / MARKETPLACE ===================== -->
+<section class="page-view" id="page-services">
+  <div class="container py-14">
+    <span class="section-eyebrow" id="servicesEyebrow">Local Services</span>
+    <h1 class="font-head text-3xl md:text-5xl font-semibold mt-2" id="servicesHeading">Meet the people behind the place.</h1>
+    <p class="text-gray-600 mt-3 max-w-xl" id="servicesSubheading">Book trusted local services and experiences.</p>
+
+    <div class="flex flex-wrap gap-2 mt-8 mb-10" id="serviceFilterChips"></div>
+
+    <div id="serviceGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-7"></div>
+  </div>
+</section>
+
+<!-- ===================== PAGE: EXPERIENCE DETAIL ===================== -->
+<section class="page-view" id="page-experience">
+  <div class="container py-10" id="experienceDetailRoot"></div>
+</section>
+
+<!-- ===================== PAGE: YATRA PASSPORT ===================== -->
+<section class="page-view" id="page-passport">
+  <div class="container py-14" id="passportRoot"></div>
+</section>
+
+<!-- ===================== PAGE: SUPPORT ===================== -->
+<section class="page-view" id="page-support">
+  <div class="container py-14">
+    <span class="section-eyebrow">On-Trip Support</span>
+    <h1 class="font-head text-3xl md:text-5xl font-semibold mt-2 mb-10">Need help during your Yatra?</h1>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14" id="supportButtons"></div>
+
+    <div class="grid lg:grid-cols-[1fr_380px] gap-8">
+      <div class="card p-0 overflow-hidden flex flex-col" style="height:560px">
+        <div class="p-5 border-b flex items-center gap-3" style="border-color:var(--line)">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--leaf-soft)"><i data-lucide="bot" style="color:var(--leaf)"></i></div>
+          <div>
+            <p class="font-semibold">AI Travel Assistant</p>
+            <p class="text-xs text-gray-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:#3fb950"></span> Online · first-line support</p>
+          </div>
+        </div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-5 flex flex-col gap-3"></div>
+        <div class="p-4 border-t flex gap-2" style="border-color:var(--line)">
+          <input id="chatInput" type="text" placeholder="I'm near Hawa Mahal and my cab cancelled…" class="flex-1 border rounded-full px-4 py-2.5 text-sm outline-none" style="border-color:var(--line)">
+          <button id="chatSendBtn" class="btn btn-primary btn-sm"><i data-lucide="send" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div class="card p-6">
+          <h3 class="font-semibold mb-1">Escalate to a human</h3>
+          <p class="text-sm text-gray-500 mb-4">Our AI handles first-line assistance. For anything urgent or unresolved, reach a real support agent instantly.</p>
+          <button class="btn btn-dark btn-block" id="humanSupportBtn"><i data-lucide="headset" class="w-4 h-4"></i> Contact Human Support</button>
+        </div>
+        <div class="card p-6" style="background:var(--maroon);color:#fff;border:none">
+          <h3 class="font-semibold mb-1 flex items-center gap-2"><i data-lucide="siren" class="w-4 h-4"></i> Emergency</h3>
+          <p class="text-sm text-white/80 mb-4">If you're in immediate danger, contact local emergency services directly.</p>
+          <button class="btn btn-block" style="background:#fff;color:var(--maroon)" id="sosBtn">🆘 SOS — Call 112</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PAGE: AUTH ===================== -->
+<section class="page-view" id="page-auth">
+  <div class="min-h-[80vh] flex items-center justify-center py-16 px-4">
+    <div class="card w-full max-w-md p-8 md:p-10">
+      <div class="flex justify-center mb-6">
+        <span class="w-11 h-11 rounded-full flex items-center justify-center" style="background:var(--rust)"><i data-lucide="compass" class="text-white w-5 h-5"></i></span>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <h2 class="font-head text-2xl font-semibold text-center">Welcome back</h2>
+        <p class="text-center text-gray-500 text-sm mt-1 mb-7">Login to continue your Yatra</p>
+        <div class="flex flex-col gap-3">
+          <input type="text" placeholder="Email or Phone" class="border rounded-xl px-4 py-3 text-sm outline-none" style="border-color:var(--line)">
+          <input type="password" placeholder="Password" class="border rounded-xl px-4 py-3 text-sm outline-none" style="border-color:var(--line)">
+          <button class="btn btn-primary btn-block mt-1" id="loginBtn">Login</button>
+          <button class="btn btn-secondary btn-block"><i data-lucide="globe" class="w-4 h-4"></i> Continue with Google</button>
+        </div>
+        <p class="text-center text-sm text-gray-500 mt-6">Don't have an account? <a class="font-semibold underline-anim" style="color:var(--rust)" id="toSignup">Create Account</a></p>
+      </div>
+
+      <!-- SIGNUP -->
+      <div id="signupForm" class="hidden">
+        <h2 class="font-head text-2xl font-semibold text-center">Create your account</h2>
+        <p class="text-center text-gray-500 text-sm mt-1 mb-7">Join APNIYATRA and start exploring</p>
+        <div class="flex flex-col gap-3">
+          <input type="text" placeholder="Full Name" class="border rounded-xl px-4 py-3 text-sm outline-none" style="border-color:var(--line)">
+          <input type="text" placeholder="Email" class="border rounded-xl px-4 py-3 text-sm outline-none" style="border-color:var(--line)">
+          <input type="text" placeholder="Phone" class="border rounded-xl px-4 py-3 text-sm outline-none" style="border-color:var(--line)">
+          <input type="password" placeholder="Password" class="border rounded-xl px-4 py-3 text-sm outline-none" style="border-color:var(--line)">
+          <div>
+            <p class="text-xs font-semibold text-gray-500 mb-2">Travel interests</p>
+            <div class="flex flex-wrap gap-2" id="signupInterestChips"></div>
+          </div>
+          <button class="btn btn-primary btn-block mt-1" id="signupBtn">Create Account</button>
+        </div>
+        <p class="text-center text-sm text-gray-500 mt-6">Already have an account? <a class="font-semibold underline-anim" style="color:var(--rust)" id="toLogin">Login</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PAGE: DASHBOARD ===================== -->
+<section class="page-view" id="page-dashboard">
+  <div class="container py-14" id="dashboardRoot"></div>
+</section>
+
+<!-- ===================== PAGE: CHECKOUT / BOOKING SUMMARY ===================== -->
+<section class="page-view" id="page-checkout">
+  <div class="container py-14" id="checkoutRoot"></div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer style="background:var(--ink);color:#fff" class="mt-10">
+  <div class="container py-16">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-10">
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--rust)"><i data-lucide="compass" class="text-white w-5 h-5"></i></span>
+          <span class="font-head text-xl font-semibold">APNIYATRA</span>
+        </div>
+        <p class="text-white/60 text-sm">Your journey. Your India.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4 text-sm tracking-wide text-white/90">Explore</h4>
+        <ul class="space-y-2.5 text-sm text-white/60">
+          <li><a class="hover:text-white" data-nav="home">Destinations</a></li>
+          <li><a class="hover:text-white" data-nav="home">Hidden Gems</a></li>
+          <li><a class="hover:text-white" data-nav="home">Heritage</a></li>
+          <li><a class="hover:text-white" data-nav="experiences">Experiences</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4 text-sm tracking-wide text-white/90">Plan</h4>
+        <ul class="space-y-2.5 text-sm text-white/60">
+          <li><a class="hover:text-white" data-nav="planner">AI Trip Planner</a></li>
+          <li><a class="hover:text-white" data-nav="map">Maps</a></li>
+          <li><a class="hover:text-white" data-nav="planner">Budget Planner</a></li>
+          <li><a class="hover:text-white" data-nav="passport">Yatra Passport</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4 text-sm tracking-wide text-white/90">Services</h4>
+        <ul class="space-y-2.5 text-sm text-white/60">
+          <li><a class="hover:text-white" data-nav="services">Guides</a></li>
+          <li><a class="hover:text-white" data-nav="services">Rentals</a></li>
+          <li><a class="hover:text-white" data-nav="services">Photographers</a></li>
+          <li><a class="hover:text-white" data-nav="services">Activities</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4 text-sm tracking-wide text-white/90">Support</h4>
+        <ul class="space-y-2.5 text-sm text-white/60">
+          <li><a class="hover:text-white" data-nav="support">Help Center</a></li>
+          <li><a class="hover:text-white" data-nav="support">Emergency</a></li>
+          <li><a class="hover:text-white" data-nav="support">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="divider mt-12 mb-6" style="background:rgba(255,255,255,.12)"></div>
+    <div class="flex flex-col sm:flex-row justify-between gap-2 text-sm text-white/50">
+      <p>© 2026 APNIYATRA</p>
+      <p>Built for Smart India Hackathon 2026</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<!-- ===================== TOASTS ===================== -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="js/data.js?v=10"></script>
+<script src="js/app.js?v=10"></script>
+</body>
+</html>
