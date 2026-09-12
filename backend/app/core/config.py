@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     # Google Gemini API
-    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY", None)
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-3.6-flash"
 
     # CORS Origins
     CORS_ORIGINS: Union[List[str], str] = [
@@ -29,6 +29,17 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://localhost:8000",
     ]
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v: Optional[str]) -> str:
+        if not v or not str(v).strip():
+            return "postgresql://postgres:postgres@localhost:5432/apniyatra_db"
+        url_str = str(v).strip()
+        # Normalise postgres:// -> postgresql:// for SQLAlchemy compatibility (common in Render, Supabase, Neon, Railway)
+        if url_str.startswith("postgres://"):
+            url_str = "postgresql://" + url_str[len("postgres://"):]
+        return url_str
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
@@ -43,7 +54,7 @@ class Settings(BaseSettings):
         return v
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="allow",

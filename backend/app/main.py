@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.router import api_router
-from app.core.database import engine
+from fastapi.responses import JSONResponse
+from fastapi import status
+from app.core.database import engine, check_db_connection
 from app.models import Base
 
 # Create tables on startup if database is available
@@ -42,9 +44,36 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health_check():
+    db_status = check_db_connection()
     return {
-        "status": "healthy",
+        "status": "healthy" if db_status["connected"] else "degraded",
         "environment": settings.ENVIRONMENT,
+        "database": {
+            "connected": db_status["connected"],
+            "dialect": db_status["dialect"],
+            "latency_ms": db_status["latency_ms"],
+            "error": db_status["error"] if not db_status["connected"] else None,
+        },
+    }
+
+
+@app.get("/health/db", tags=["Health"])
+def database_health_check():
+    db_status = check_db_connection()
+    if not db_status["connected"]:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "disconnected",
+                "dialect": db_status["dialect"],
+                "latency_ms": db_status["latency_ms"],
+                "error": db_status["error"],
+            },
+        )
+    return {
+        "status": "connected",
+        "dialect": db_status["dialect"],
+        "latency_ms": db_status["latency_ms"],
     }
 
 

@@ -21,7 +21,9 @@ if config.config_file_name is not None:
 
 # Override sqlalchemy.url with the app's settings if present
 database_url = os.getenv("DATABASE_URL", settings.DATABASE_URL)
-config.set_main_option("sqlalchemy.url", database_url)
+if database_url.startswith("postgres://"):
+    database_url = "postgresql://" + database_url[len("postgres://"):]
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
